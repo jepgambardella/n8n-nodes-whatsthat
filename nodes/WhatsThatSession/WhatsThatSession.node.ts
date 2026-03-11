@@ -28,8 +28,9 @@ export class WhatsThatSession implements INodeType {
         displayName: 'Operation',
         name: 'operation',
         type: 'options',
-        default: 'ensure',
+        default: 'connect',
         options: [
+          { name: 'Connect Session', value: 'connect' },
           { name: 'Ensure Session', value: 'ensure' },
           { name: 'List Sessions', value: 'list' },
           { name: 'Get Session Status', value: 'status' },
@@ -57,7 +58,7 @@ export class WhatsThatSession implements INodeType {
         description:
           'Human-readable name shown in results. Example: "Luca personal phone" or "Support number".',
         displayOptions: {
-          show: { operation: ['ensure'] },
+          show: { operation: ['connect', 'ensure'] },
         },
       },
       {
@@ -68,7 +69,7 @@ export class WhatsThatSession implements INodeType {
         description:
           'Optional. Full phone number with country code, digits only, without 00 or +. Example: 393331234567.',
         displayOptions: {
-          show: { operation: ['ensure'] },
+          show: { operation: ['connect', 'ensure'] },
         },
       },
       {
@@ -116,6 +117,20 @@ export class WhatsThatSession implements INodeType {
         let json: unknown;
 
         switch (operation) {
+          case 'connect': {
+            const label = (this.getNodeParameter('label', itemIndex, '') as string).trim();
+            const phoneNumberForPairing = (
+              this.getNodeParameter('phoneNumberForPairing', itemIndex, '') as string
+            ).trim();
+
+            await registry.ensureSession(access.paths.root, access, {
+              sessionId,
+              label: label || sessionId,
+              phoneNumberForPairing,
+            });
+            json = await registry.connectSession(access.paths.root, access, sessionId);
+            break;
+          }
           case 'ensure': {
             const label = (this.getNodeParameter('label', itemIndex, '') as string).trim();
             const phoneNumberForPairing = (

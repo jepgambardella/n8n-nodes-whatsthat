@@ -14,19 +14,35 @@
     },
     {
       "parameters": {
-        "operation": "ensure",
+        "operation": "connect",
         "sessionId": "main-phone",
         "label": "Main phone",
-        "phoneNumberForPairing": "393331234567",
-        "waitFor": "pairing_or_connected",
-        "timeoutSeconds": 20
+        "phoneNumberForPairing": "393331234567"
       },
       "id": "9d89db0a-20d4-4cc0-a435-e56b6fa028b7",
-      "name": "Ensure Session",
+      "name": "Connect Session",
       "type": "@jep182/n8n-nodes-whatsthat.whatsThatSession",
       "typeVersion": 1,
       "position": [
         540,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "ensure",
+        "sessionId": "main-phone",
+        "label": "Main phone",
+        "phoneNumberForPairing": "393331234567",
+        "waitFor": "connected",
+        "timeoutSeconds": 300
+      },
+      "id": "ef81d309-25d0-4445-bd50-9d2c3a9e09a4",
+      "name": "Ensure Session",
+      "type": "@jep182/n8n-nodes-whatsthat.whatsThatSession",
+      "typeVersion": 1,
+      "position": [
+        820,
         300
       ]
     }
@@ -34,6 +50,17 @@
   "pinData": {},
   "connections": {
     "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Connect Session",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Connect Session": {
       "main": [
         [
           {

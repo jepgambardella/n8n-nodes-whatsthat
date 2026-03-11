@@ -253,12 +253,12 @@ class WhatsThatRegistry extends EventEmitter {
   }
 
   async ensureConnectedSession(
-    storageRoot: string,
+    _storageRoot: string,
     access: DataAccess,
     input: { sessionId: string; label: string; phoneNumberForPairing?: string },
     options?: { waitFor?: 'pairing_or_connected' | 'connected'; timeoutMs?: number },
   ): Promise<SessionRecord> {
-    await this.ensureSession(storageRoot, access, input);
+    await this.ensureSession(_storageRoot, access, input);
 
     const current = await this.getSession(access, input.sessionId);
     if (!current) {
@@ -266,7 +266,9 @@ class WhatsThatRegistry extends EventEmitter {
     }
 
     if (!this.sockets.has(input.sessionId) && current.status !== 'connected') {
-      await this.connectSession(storageRoot, access, input.sessionId);
+      throw new Error(
+        `Session ${input.sessionId} is not active. Run Connect Session first and keep the n8n runtime alive until pairing completes.`,
+      );
     }
 
     return this.waitForSessionState(
@@ -595,6 +597,25 @@ class WhatsThatRegistry extends EventEmitter {
     }
 
     return false;
+  }
+
+  async waitForConnectedSession(
+    access: DataAccess,
+    sessionId: string,
+    timeoutMs: number,
+  ): Promise<SessionRecord> {
+    const current = await this.getSession(access, sessionId);
+    if (!current) {
+      throw new Error(`Unknown session ${sessionId}`);
+    }
+
+    if (!this.sockets.has(sessionId) && current.status !== 'connected') {
+      throw new Error(
+        `Session ${sessionId} is not active. Run Connect Session first and keep the n8n runtime alive until pairing completes.`,
+      );
+    }
+
+    return this.waitForSessionState(access, sessionId, 'connected', timeoutMs);
   }
 
   private required<T>(value: T | undefined, field: string): T {

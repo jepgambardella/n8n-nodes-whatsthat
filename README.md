@@ -17,8 +17,8 @@ It lets you:
 
 Use this node to:
 
-- create a session
 - connect a session
+- wait for a session to become connected
 - list sessions
 - inspect session status
 - disconnect a session
@@ -86,14 +86,15 @@ WhatsThat embeds Baileys directly in n8n.
 ```
 
 3. Add `WhatsThat Session`.
-4. Choose `Ensure Session`, then provide:
+4. Choose `Connect Session`, then provide:
    - `Session ID (Internal)`: a stable unique ID such as `main-phone`
    - `Label (Visible Name)`: a human-readable name such as `Luca personal phone`
    - optional `Phone Number For Pairing`: full number with country code, digits only, without `00` or `+`
-5. Set `Return When` to `Pairing Is Ready Or Connected` for first-time pairing.
-6. Use the returned `pairingCode`, `qrCodeUrl`, or `qrDataUrl` to connect the device.
-7. Use `WhatsThat Targets` to discover and link chats/groups.
-8. Use `WhatsThat Message` to send messages by alias or raw JID.
+5. Run the node and use the returned `pairingCode`, `qrCodeUrl`, or `qrDataUrl` to connect the device.
+6. Add another `WhatsThat Session` node with `Ensure Session`.
+7. Set `Return When` to `Connected` so the workflow waits until the already-started session finishes pairing.
+8. Use `WhatsThat Targets` to discover and link chats/groups.
+9. Use `WhatsThat Message` to send messages by alias or raw JID.
 
 Example workflow:
 
