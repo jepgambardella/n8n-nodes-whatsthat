@@ -1,0 +1,56 @@
+{
+  "name": "WhatsThat - Register Number",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "f27b9cc6-9cd7-4b92-b6fe-c4f3c45db54a",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        260,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "ensure",
+        "sessionId": "main-phone",
+        "label": "Main phone",
+        "phoneNumberForPairing": "393331234567",
+        "waitFor": "pairing_or_connected",
+        "timeoutSeconds": 20
+      },
+      "id": "9d89db0a-20d4-4cc0-a435-e56b6fa028b7",
+      "name": "Ensure Session",
+      "type": "@jep182/n8n-nodes-whatsthat.whatsThatSession",
+      "typeVersion": 1,
+      "position": [
+        540,
+        300
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Ensure Session",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {},
+  "versionId": "168409ab-042e-4e91-a124-38922423e649",
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "id": "whatsThatRegisterNumber",
+  "tags": []
+}

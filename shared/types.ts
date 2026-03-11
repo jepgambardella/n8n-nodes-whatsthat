@@ -15,6 +15,7 @@ export interface SessionRecord {
   phone?: string;
   pairingCode?: string;
   qr?: string;
+  qrCodeUrl?: string;
   qrDataUrl?: string;
   phoneNumberForPairing?: string;
   lastSeenAt: string;

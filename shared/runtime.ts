@@ -123,10 +123,12 @@ class WhatsThatRegistry extends EventEmitter {
       if (update.qr) {
         qrcodeTerminal.generate(update.qr, { small: true });
         const qrDataUrl = await QRCode.toDataURL(update.qr);
+        const qrCodeUrl = this.buildQrCodeUrl(update.qr);
         const pairingRecord: SessionRecord = {
           ...current,
           status: 'pairing',
           qr: update.qr,
+          qrCodeUrl,
           qrDataUrl,
           updatedAt: new Date().toISOString(),
           lastSeenAt: new Date().toISOString(),
@@ -155,6 +157,7 @@ class WhatsThatRegistry extends EventEmitter {
           status: 'connected',
           phone: socket.user?.id,
           qr: undefined,
+          qrCodeUrl: undefined,
           qrDataUrl: undefined,
           pairingCode: undefined,
           updatedAt: new Date().toISOString(),
@@ -247,6 +250,31 @@ class WhatsThatRegistry extends EventEmitter {
 
     this.sockets.set(sessionId, socket);
     return (await this.getSession(access, sessionId)) ?? starting;
+  }
+
+  async ensureConnectedSession(
+    storageRoot: string,
+    access: DataAccess,
+    input: { sessionId: string; label: string; phoneNumberForPairing?: string },
+    options?: { waitFor?: 'pairing_or_connected' | 'connected'; timeoutMs?: number },
+  ): Promise<SessionRecord> {
+    await this.ensureSession(storageRoot, access, input);
+
+    const current = await this.getSession(access, input.sessionId);
+    if (!current) {
+      throw new Error(`Unknown session ${input.sessionId}`);
+    }
+
+    if (!this.sockets.has(input.sessionId) && current.status !== 'connected') {
+      await this.connectSession(storageRoot, access, input.sessionId);
+    }
+
+    return this.waitForSessionState(
+      access,
+      input.sessionId,
+      options?.waitFor ?? 'pairing_or_connected',
+      options?.timeoutMs ?? 20000,
+    );
   }
 
   async listSessions(access: DataAccess): Promise<SessionRecord[]> {
@@ -508,11 +536,76 @@ class WhatsThatRegistry extends EventEmitter {
     this.emit('event', event);
   }
 
+  private async waitForSessionState(
+    access: DataAccess,
+    sessionId: string,
+    waitFor: 'pairing_or_connected' | 'connected',
+    timeoutMs: number,
+  ): Promise<SessionRecord> {
+    const current = await this.getSession(access, sessionId);
+    if (!current) {
+      throw new Error(`Unknown session ${sessionId}`);
+    }
+
+    if (this.matchesWaitTarget(current, waitFor)) {
+      return current;
+    }
+
+    return new Promise((resolve) => {
+      let settled = false;
+      let timeout: NodeJS.Timeout | undefined;
+
+      const cleanup = () => {
+        if (timeout) clearTimeout(timeout);
+        this.off('event', handler);
+      };
+
+      const settle = async () => {
+        if (settled) return;
+        settled = true;
+        cleanup();
+        resolve((await this.getSession(access, sessionId)) ?? current);
+      };
+
+      const handler = async (event: RuntimeEvent) => {
+        if (event.sessionId !== sessionId) return;
+        const latest = await this.getSession(access, sessionId);
+        if (latest && this.matchesWaitTarget(latest, waitFor)) {
+          await settle();
+        }
+      };
+
+      this.on('event', handler);
+      timeout = setTimeout(() => {
+        void settle();
+      }, timeoutMs);
+    });
+  }
+
+  private matchesWaitTarget(
+    record: SessionRecord,
+    waitFor: 'pairing_or_connected' | 'connected',
+  ): boolean {
+    if (record.status === 'connected') {
+      return true;
+    }
+
+    if (waitFor === 'pairing_or_connected' && record.status === 'pairing') {
+      return true;
+    }
+
+    return false;
+  }
+
   private required<T>(value: T | undefined, field: string): T {
     if (value === undefined || value === null || value === '') {
       throw new Error(`Missing required field ${field}`);
     }
     return value;
+  }
+
+  private buildQrCodeUrl(qr: string): string {
+    return `https://quickchart.io/qr?text=${encodeURIComponent(qr)}`;
   }
 }
 

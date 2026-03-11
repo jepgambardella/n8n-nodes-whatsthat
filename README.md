@@ -27,6 +27,7 @@ Use this node to:
 When pairing is available, the node returns:
 
 - `pairingCode`
+- `qrCodeUrl`
 - `qr`
 - `qrDataUrl`
 
@@ -85,14 +86,18 @@ WhatsThat embeds Baileys directly in n8n.
 ```
 
 3. Add `WhatsThat Session`.
-4. Choose `Create Session`, then provide:
+4. Choose `Ensure Session`, then provide:
    - `Session ID (Internal)`: a stable unique ID such as `main-phone`
    - `Label (Visible Name)`: a human-readable name such as `Luca personal phone`
    - optional `Phone Number For Pairing`: full number with country code, digits only, without `00` or `+`
-5. Run `Connect Session`.
-6. Use the returned `pairingCode` or `qrDataUrl` to connect the device.
+5. Set `Return When` to `Pairing Is Ready Or Connected` for first-time pairing.
+6. Use the returned `pairingCode`, `qrCodeUrl`, or `qrDataUrl` to connect the device.
 7. Use `WhatsThat Targets` to discover and link chats/groups.
 8. Use `WhatsThat Message` to send messages by alias or raw JID.
+
+Example workflow:
+
+- [`examples/register-number.workflow.json`](./examples/register-number.workflow.json)
 
 ## Media Delivery
 
