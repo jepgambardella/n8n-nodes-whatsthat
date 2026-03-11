@@ -1,6 +1,6 @@
 {
   "name": "@jep182/n8n-nodes-whatsthat",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "description": "n8n community nodes with embedded Baileys runtime for multi-session chat automation",
   "license": "MIT",
   "main": "dist/index.js",
