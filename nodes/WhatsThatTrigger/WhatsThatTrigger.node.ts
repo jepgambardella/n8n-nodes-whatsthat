@@ -8,6 +8,7 @@ import type {
 
 import { registry } from '../../shared/runtime';
 import type { RuntimeEvent } from '../../shared/types';
+import { requireSessionId } from '../../shared/validation';
 
 export class WhatsThatTrigger implements INodeType {
   description: INodeTypeDescription = {
@@ -22,7 +23,14 @@ export class WhatsThatTrigger implements INodeType {
     outputs: ['main'],
     credentials: [{ name: 'whatsThatRuntime', required: true }],
     properties: [
-      { displayName: 'Session ID', name: 'sessionId', type: 'string', default: '' },
+      {
+        displayName: 'Session ID (Internal)',
+        name: 'sessionId',
+        type: 'string',
+        default: '',
+        required: true,
+        description: 'The unique session ID created in the WhatsThat Session node.',
+      },
       {
         displayName: 'Event',
         name: 'eventName',
@@ -44,7 +52,7 @@ export class WhatsThatTrigger implements INodeType {
   };
 
   async trigger(this: ITriggerFunctions): Promise<ITriggerResponse> {
-    const sessionId = this.getNodeParameter('sessionId') as string;
+    const sessionId = requireSessionId(this.getNodeParameter('sessionId') as string);
     const eventName = this.getNodeParameter('eventName') as string;
     const handler = (event: RuntimeEvent) => {
       if (event.sessionId !== sessionId) return;

@@ -9,6 +9,7 @@ import { NodeOperationError } from 'n8n-workflow';
 
 import { buildAccess } from '../../shared/access';
 import { registry } from '../../shared/runtime';
+import { requireSessionId } from '../../shared/validation';
 
 function buildPayload(context: IExecuteFunctions, itemIndex: number): IDataObject {
   const messageType = context.getNodeParameter('messageType', itemIndex) as string;
@@ -16,7 +17,7 @@ function buildPayload(context: IExecuteFunctions, itemIndex: number): IDataObjec
   const deliveryMode = context.getNodeParameter('deliveryMode', itemIndex, 'native') as string;
 
   const payload: IDataObject = {
-    sessionId: context.getNodeParameter('sessionId', itemIndex) as string,
+    sessionId: requireSessionId(context.getNodeParameter('sessionId', itemIndex) as string),
     type: messageType,
   };
 
@@ -88,7 +89,14 @@ export class WhatsThatMessage implements INodeType {
     outputs: ['main'],
     credentials: [{ name: 'whatsThatRuntime', required: true }],
     properties: [
-      { displayName: 'Session ID', name: 'sessionId', type: 'string', default: '' },
+      {
+        displayName: 'Session ID (Internal)',
+        name: 'sessionId',
+        type: 'string',
+        default: '',
+        required: true,
+        description: 'The unique session ID created in the WhatsThat Session node.',
+      },
       {
         displayName: 'Target Mode',
         name: 'targetMode',

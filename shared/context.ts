@@ -5,15 +5,12 @@ import type {
   IDataObject,
   IExecuteFunctions,
   ILoadOptionsFunctions,
-  IDataTableProjectAggregateService,
-  IDataTableProjectService,
 } from 'n8n-workflow';
 
 export type NodeContext = IExecuteFunctions | ILoadOptionsFunctions;
 
 export interface RuntimeConfig {
   storagePath: string;
-  useDataTables: boolean;
 }
 
 export async function getRuntimeConfig(context: NodeContext): Promise<RuntimeConfig> {
@@ -21,7 +18,6 @@ export async function getRuntimeConfig(context: NodeContext): Promise<RuntimeCon
   const storagePath = String(credentials.storagePath || '/home/node/.n8n/whatsthat');
   return {
     storagePath,
-    useDataTables: Boolean(credentials.useDataTables ?? true),
   };
 }
 
@@ -31,27 +27,6 @@ export function runtimePaths(config: RuntimeConfig) {
     authRoot: path.join(config.storagePath, 'auth'),
     tablesFallback: path.join(config.storagePath, 'tables'),
   };
-}
-
-export async function getAggregateProxy(
-  context: NodeContext,
-): Promise<IDataTableProjectAggregateService | null> {
-  if (!context.helpers.getDataTableAggregateProxy) {
-    return null;
-  }
-
-  return context.helpers.getDataTableAggregateProxy();
-}
-
-export async function getTableProxy(
-  context: NodeContext,
-  tableId: string,
-): Promise<IDataTableProjectService | null> {
-  if (!context.helpers.getDataTableProxy) {
-    return null;
-  }
-
-  return context.helpers.getDataTableProxy(tableId);
 }
 
 export function asDataObject(value: unknown): IDataObject {

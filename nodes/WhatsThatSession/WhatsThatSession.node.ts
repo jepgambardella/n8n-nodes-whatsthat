@@ -9,6 +9,7 @@ import { NodeOperationError } from 'n8n-workflow';
 
 import { buildAccess } from '../../shared/access';
 import { registry } from '../../shared/runtime';
+import { normalizeSessionId, requireSessionId } from '../../shared/validation';
 
 export class WhatsThatSession implements INodeType {
   description: INodeTypeDescription = {
@@ -38,19 +39,24 @@ export class WhatsThatSession implements INodeType {
         ],
       },
       {
-        displayName: 'Session ID',
+        displayName: 'Session ID (Internal)',
         name: 'sessionId',
         type: 'string',
         default: '',
+        required: true,
+        description:
+          'Required unique ID for this session. Use a stable internal value such as "main-phone" or "support-team".',
         displayOptions: {
           hide: { operation: ['list'] },
         },
       },
       {
-        displayName: 'Label',
+        displayName: 'Label (Visible Name)',
         name: 'label',
         type: 'string',
         default: '',
+        description:
+          'Human-readable name shown in results. Example: "Luca personal phone" or "Support number".',
         displayOptions: {
           show: { operation: ['create'] },
         },
@@ -60,7 +66,8 @@ export class WhatsThatSession implements INodeType {
         name: 'phoneNumberForPairing',
         type: 'string',
         default: '',
-        description: 'Optional. When provided, WhatsThat will request a pairing code when possible',
+        description:
+          'Optional. Full phone number with country code, digits only, without 00 or +. Example: 393331234567.',
         displayOptions: {
           show: { operation: ['create'] },
         },
@@ -76,19 +83,20 @@ export class WhatsThatSession implements INodeType {
     for (let itemIndex = 0; itemIndex < items.length; itemIndex++) {
       try {
         const operation = this.getNodeParameter('operation', itemIndex) as string;
-        const sessionId = this.getNodeParameter('sessionId', itemIndex, '') as string;
+        const rawSessionId = this.getNodeParameter('sessionId', itemIndex, '') as string;
+        const sessionId = operation === 'list' ? normalizeSessionId(rawSessionId) : requireSessionId(rawSessionId);
         let json: unknown;
+        const label = (this.getNodeParameter('label', itemIndex, '') as string).trim();
+        const phoneNumberForPairing = (
+          this.getNodeParameter('phoneNumberForPairing', itemIndex, '') as string
+        ).trim();
 
         switch (operation) {
           case 'create':
             json = await registry.ensureSession(access.paths.root, access, {
               sessionId,
-              label: (this.getNodeParameter('label', itemIndex) as string) || sessionId,
-              phoneNumberForPairing: this.getNodeParameter(
-                'phoneNumberForPairing',
-                itemIndex,
-                '',
-              ) as string,
+              label: label || sessionId,
+              phoneNumberForPairing,
             });
             break;
           case 'connect':

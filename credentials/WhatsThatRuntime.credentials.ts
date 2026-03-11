@@ -14,14 +14,7 @@ export class WhatsThatRuntime implements ICredentialType {
       type: 'string',
       default: '=/home/node/.n8n/whatsthat',
       required: true,
-      description: 'Root folder used for session files and local fallback data',
-    },
-    {
-      displayName: 'Use Data Tables',
-      name: 'useDataTables',
-      type: 'boolean',
-      default: true,
-      description: 'Use n8n Data Tables when available, with filesystem fallback',
+      description: 'Root folder used for session auth files and metadata',
     },
   ];
 }

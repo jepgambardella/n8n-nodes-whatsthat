@@ -9,6 +9,7 @@ import { NodeOperationError } from 'n8n-workflow';
 
 import { buildAccess } from '../../shared/access';
 import { registry } from '../../shared/runtime';
+import { requireSessionId } from '../../shared/validation';
 
 export class WhatsThatTargets implements INodeType {
   description: INodeTypeDescription = {
@@ -36,10 +37,12 @@ export class WhatsThatTargets implements INodeType {
         ],
       },
       {
-        displayName: 'Session ID',
+        displayName: 'Session ID (Internal)',
         name: 'sessionId',
         type: 'string',
         default: '',
+        required: true,
+        description: 'The unique session ID created in the WhatsThat Session node.',
       },
       {
         displayName: 'Target JID',
@@ -70,7 +73,7 @@ export class WhatsThatTargets implements INodeType {
     for (let itemIndex = 0; itemIndex < items.length; itemIndex++) {
       try {
         const operation = this.getNodeParameter('operation', itemIndex) as string;
-        const sessionId = this.getNodeParameter('sessionId', itemIndex) as string;
+        const sessionId = requireSessionId(this.getNodeParameter('sessionId', itemIndex) as string);
         let json: unknown;
 
         switch (operation) {

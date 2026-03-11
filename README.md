@@ -73,8 +73,7 @@ Use this node to listen for:
 WhatsThat embeds Baileys directly in n8n.
 
 - session auth files are stored on disk
-- session metadata and linked targets can use n8n Data Tables when available
-- if Data Tables are not available, WhatsThat falls back to local JSON storage
+- session metadata and linked targets are stored as local JSON files under the runtime storage path
 
 ## Quick Start
 
@@ -87,9 +86,9 @@ WhatsThat embeds Baileys directly in n8n.
 
 3. Add `WhatsThat Session`.
 4. Choose `Create Session`, then provide:
-   - `Session ID`
-   - `Label`
-   - optional `Phone Number For Pairing`
+   - `Session ID (Internal)`: a stable unique ID such as `main-phone`
+   - `Label (Visible Name)`: a human-readable name such as `Luca personal phone`
+   - optional `Phone Number For Pairing`: full number with country code, digits only, without `00` or `+`
 5. Run `Connect Session`.
 6. Use the returned `pairingCode` or `qrDataUrl` to connect the device.
 7. Use `WhatsThat Targets` to discover and link chats/groups.
