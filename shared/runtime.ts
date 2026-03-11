@@ -30,6 +30,8 @@ type SendRequest = {
   sessionId: string;
   channelAlias?: string;
   jid?: string;
+  phoneNumber?: string;
+  sendToSelf?: boolean;
   type: 'text' | 'image' | 'video' | 'audio' | 'document' | 'reaction' | 'location' | 'contact' | 'poll';
   sendAsDocument?: boolean;
   message?: string;
@@ -379,12 +381,9 @@ class WhatsThatRegistry extends EventEmitter {
     if (!socket) {
       throw new Error(`Session ${request.sessionId} is not connected`);
     }
-    const linked = await this.listLinkedTargets(access, request.sessionId);
-    const targetJid =
-      request.jid ??
-      linked.find((item) => item.alias === request.channelAlias)?.jid;
+    const targetJid = await this.resolveTargetJid(access, request, socket);
     if (!targetJid) {
-      throw new Error('Unknown target. Use a linked alias or raw JID.');
+      throw new Error('Unknown target. Use a linked chat, WhatsApp number, raw JID, or Yourself.');
     }
     const content = this.buildContent(request, targetJid);
     const response = await socket.sendMessage(targetJid, content, {
@@ -482,6 +481,39 @@ class WhatsThatRegistry extends EventEmitter {
           },
         };
     }
+  }
+
+  private async resolveTargetJid(
+    access: DataAccess,
+    request: SendRequest,
+    socket: WASocket,
+  ): Promise<string | undefined> {
+    if (request.jid) {
+      return request.jid;
+    }
+
+    if (request.phoneNumber) {
+      return `${request.phoneNumber}@s.whatsapp.net`;
+    }
+
+    if (request.sendToSelf) {
+      const session = await this.getSession(access, request.sessionId);
+      const raw = session?.phone ?? socket.user?.id;
+      const normalized = raw?.split(':')[0];
+      if (!normalized) {
+        throw new Error(
+          `Session ${request.sessionId} does not have a known WhatsApp number yet. Connect the session first.`,
+        );
+      }
+      return normalized;
+    }
+
+    if (request.channelAlias) {
+      const linked = await this.listLinkedTargets(access, request.sessionId);
+      return linked.find((item) => item.alias === request.channelAlias)?.jid;
+    }
+
+    return undefined;
   }
 
   private async syncGroups(access: DataAccess, sessionId: string, socket: WASocket): Promise<void> {

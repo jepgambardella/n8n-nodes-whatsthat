@@ -5,9 +5,10 @@ import type {
   IDataObject,
   IExecuteFunctions,
   ILoadOptionsFunctions,
+  ITriggerFunctions,
 } from 'n8n-workflow';
 
-export type NodeContext = IExecuteFunctions | ILoadOptionsFunctions;
+export type NodeContext = IExecuteFunctions | ILoadOptionsFunctions | ITriggerFunctions;
 
 export interface RuntimeConfig {
   storagePath: string;
