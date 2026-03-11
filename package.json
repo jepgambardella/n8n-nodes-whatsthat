@@ -5,13 +5,13 @@
   "license": "MIT",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "homepage": "https://github.com/jep182/whatsapp-bot",
+  "homepage": "https://github.com/jepgambardella/n8n-nodes-whatsthat",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/jep182/whatsapp-bot.git"
+    "url": "git+https://github.com/jepgambardella/n8n-nodes-whatsthat.git"
   },
   "bugs": {
-    "url": "https://github.com/jep182/whatsapp-bot/issues"
+    "url": "https://github.com/jepgambardella/n8n-nodes-whatsthat/issues"
   },
   "author": "jep182",
   "keywords": [

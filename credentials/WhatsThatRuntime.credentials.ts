@@ -5,7 +5,7 @@ export class WhatsThatRuntime implements ICredentialType {
 
   displayName = 'WhatsThat Runtime';
 
-  documentationUrl = 'https://github.com/jep182/whatsapp-bot';
+  documentationUrl = 'https://github.com/jepgambardella/n8n-nodes-whatsthat';
 
   properties: INodeProperties[] = [
     {
