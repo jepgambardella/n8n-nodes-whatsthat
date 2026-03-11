@@ -1,0 +1,121 @@
+# @jep182/n8n-nodes-whatsthat
+
+WhatsThat is an n8n community package for sending WhatsApp messages, with multiple sessions.
+
+It lets you:
+
+- manage multiple sessions and numbers
+- connect with pairing code or QR
+- discover chats and groups
+- link chats/groups to friendly aliases
+- send text, media, documents, reactions, contacts, locations, and polls
+- receive inbound events through a trigger node
+
+## Included Nodes
+
+### `WhatsThat Session`
+
+Use this node to:
+
+- create a session
+- connect a session
+- list sessions
+- inspect session status
+- disconnect a session
+- remove a session
+
+When pairing is available, the node returns:
+
+- `pairingCode`
+- `qr`
+- `qrDataUrl`
+
+### `WhatsThat Targets`
+
+Use this node to:
+
+- list discovered chats and groups
+- list linked aliases
+- link a target to an alias
+- unlink an alias
+
+### `WhatsThat Message`
+
+Use this node to send:
+
+- text
+- image
+- video
+- audio
+- document
+- reaction
+- location
+- contact
+- poll
+
+For images and videos, the node can decide internally whether to send them as:
+
+- native media
+- file/document attachment
+
+### `WhatsThat Trigger`
+
+Use this node to listen for:
+
+- incoming messages
+- your own sent messages
+- session pairing events
+- session connected/disconnected events
+- group updates
+
+## How It Works
+
+WhatsThat embeds Baileys directly in n8n.
+
+- session auth files are stored on disk
+- session metadata and linked targets can use n8n Data Tables when available
+- if Data Tables are not available, WhatsThat falls back to local JSON storage
+
+## Quick Start
+
+1. Create `WhatsThat Runtime` credentials.
+2. Set a storage path, for example:
+
+```text
+/home/node/.n8n/whatsthat
+```
+
+3. Add `WhatsThat Session`.
+4. Choose `Create Session`, then provide:
+   - `Session ID`
+   - `Label`
+   - optional `Phone Number For Pairing`
+5. Run `Connect Session`.
+6. Use the returned `pairingCode` or `qrDataUrl` to connect the device.
+7. Use `WhatsThat Targets` to discover and link chats/groups.
+8. Use `WhatsThat Message` to send messages by alias or raw JID.
+
+## Media Delivery
+
+For `Image` and `Video` messages:
+
+- `Native Media` sends them as normal media with preview
+- `As File` sends them as a document/file attachment
+
+## Notes
+
+- This package runs an active WebSocket client inside n8n.
+- For production, use persistent storage for the auth directory.
+- Use one n8n instance as the runtime owner for these sessions.
+
+## Thanks
+
+This project relies on [Baileys](https://github.com/WhiskeySockets/Baileys), the open-source TypeScript/Node.js library that powers the messaging client layer.
+
+Please review the Baileys project, its license, and its usage notes before running it in production:
+
+- [Baileys repository](https://github.com/WhiskeySockets/Baileys)
+
+## License
+
+MIT
