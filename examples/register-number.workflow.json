@@ -14,6 +14,7 @@
     },
     {
       "parameters": {
+        "resource": "session",
         "operation": "connect",
         "sessionId": "main-phone",
         "label": "Main phone",
@@ -21,7 +22,7 @@
       },
       "id": "9d89db0a-20d4-4cc0-a435-e56b6fa028b7",
       "name": "Connect Session",
-      "type": "@jep182/n8n-nodes-whatsthat.whatsThatSession",
+      "type": "@jep182/n8n-nodes-whatsthat.whatsThat",
       "typeVersion": 1,
       "position": [
         540,
@@ -30,13 +31,14 @@
     },
     {
       "parameters": {
+        "resource": "session",
         "operation": "ensure",
         "sessionId": "main-phone",
         "timeoutSeconds": 300
       },
       "id": "ef81d309-25d0-4445-bd50-9d2c3a9e09a4",
       "name": "Wait Until Connect",
-      "type": "@jep182/n8n-nodes-whatsthat.whatsThatSession",
+      "type": "@jep182/n8n-nodes-whatsthat.whatsThat",
       "typeVersion": 1,
       "position": [
         820,

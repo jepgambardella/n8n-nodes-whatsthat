@@ -24,3 +24,7 @@ export async function writeJson<T>(filePath: string, payload: T): Promise<void> 
   await ensureDirFor(filePath);
   await fs.writeFile(filePath, JSON.stringify(payload, null, 2), 'utf8');
 }
+
+export async function removeDir(dirPath: string): Promise<void> {
+  await fs.rm(dirPath, { recursive: true, force: true });
+}

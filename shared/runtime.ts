@@ -14,7 +14,7 @@ import makeWASocket, {
 import QRCode from 'qrcode';
 import qrcodeTerminal from 'qrcode-terminal';
 
-import { ensureDir } from './fs';
+import { ensureDir, removeDir } from './fs';
 import type { DiscoveredTarget, LinkedTarget, RuntimeEvent, SessionRecord } from './types';
 
 type DataAccess = {
@@ -257,11 +257,9 @@ class WhatsThatRegistry extends EventEmitter {
   async ensureConnectedSession(
     _storageRoot: string,
     access: DataAccess,
-    input: { sessionId: string; label: string; phoneNumberForPairing?: string },
+    input: { sessionId: string },
     options?: { waitFor?: 'pairing_or_connected' | 'connected'; timeoutMs?: number },
   ): Promise<SessionRecord> {
-    await this.ensureSession(_storageRoot, access, input);
-
     const current = await this.getSession(access, input.sessionId);
     if (!current) {
       throw new Error(`Unknown session ${input.sessionId}`);
@@ -308,7 +306,7 @@ class WhatsThatRegistry extends EventEmitter {
     return updated;
   }
 
-  async removeSession(access: DataAccess, sessionId: string): Promise<boolean> {
+  async removeSession(storageRoot: string, access: DataAccess, sessionId: string): Promise<boolean> {
     const sessions = await access.listSessions();
     const next = sessions.filter((session) => session.sessionId !== sessionId);
     if (next.length === sessions.length) return false;
@@ -318,6 +316,7 @@ class WhatsThatRegistry extends EventEmitter {
     const discovered = await access.listDiscoveredTargets();
     await access.saveDiscoveredTargets(discovered.filter((item) => item.sessionId !== sessionId));
     this.sockets.delete(sessionId);
+    await removeDir(path.join(storageRoot, 'auth', sessionId));
     return true;
   }
 

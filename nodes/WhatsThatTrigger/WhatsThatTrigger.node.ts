@@ -15,7 +15,7 @@ export class WhatsThatTrigger implements INodeType {
   description: INodeTypeDescription = {
     displayName: 'WhatsThat Trigger',
     name: 'whatsThatTrigger',
-    icon: 'file:../WhatsThatSession/whatsthat.svg',
+    icon: 'file:../WhatsThat/whatsthat.svg',
     group: ['trigger'],
     version: 1,
     description: 'Listen to session, message, and group events from WhatsThat',
@@ -62,7 +62,20 @@ export class WhatsThatTrigger implements INodeType {
             eventName: ['link.chat.command'],
           },
         },
-      }
+      },
+      {
+        displayName: 'How Link Chat Command Works',
+        name: 'linkCommandNotice',
+        type: 'notice',
+        default: '',
+        description:
+          'Open the chat or group you want to save, then send the command followed by the alias. Example: /link-whatsthat support',
+        displayOptions: {
+          show: {
+            eventName: ['link.chat.command'],
+          },
+        },
+      },
     ],
   };
 
@@ -72,7 +85,8 @@ export class WhatsThatTrigger implements INodeType {
     const linkCommand = (this.getNodeParameter('linkCommand') as string) || '/link-whatsthat';
     const access = await buildAccess(this);
 
-    const handler = async (event: RuntimeEvent) => {
+    const handler = (event: RuntimeEvent) => {
+      void (async () => {
       if (event.sessionId !== sessionId) return;
 
       if (eventName === 'link.chat.command') {
@@ -110,6 +124,9 @@ export class WhatsThatTrigger implements INodeType {
 
       if (eventName !== '*' && event.event !== eventName) return;
       this.emit([[{ json: event as unknown as IDataObject }]]);
+      })().catch((error: Error) => {
+        this.emitError(error);
+      });
     };
 
     registry.on('event', handler);

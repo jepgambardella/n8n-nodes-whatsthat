@@ -4,7 +4,7 @@ WhatsThat lets you connect one or more WhatsApp numbers inside n8n, link chats o
 
 In the n8n node picker, you will find:
 
-- `WhatsThat` actions
+- `WhatsThat`
 - `WhatsThat Trigger`
 
 You also need one credential:
@@ -21,17 +21,16 @@ Create `WhatsThat Runtime` credentials and choose a persistent storage path, for
 
 This folder is used to store session files and local metadata.
 
-The action nodes all appear under the same name, `WhatsThat`, but with different purposes:
+Inside `WhatsThat` you choose:
 
-- session actions
-- linked chat actions
-- message actions
+- `Section`: `Session`, `Linked Chat`, or `Message`
+- `Action`: the specific action you want to run
 
 ## How To Connect Your Number
 
 1. Add a `WhatsThat` node.
-2. Choose the action for sessions.
-3. Set `Operation` to `Connect Session`.
+2. Set `Section` to `Session`.
+3. Set `Action` to `Connect Session`.
 4. Fill in:
    - `Session Name`: a stable internal name like `main-phone`
    - `Display Name`: a friendly label like `Luca phone`
@@ -60,8 +59,8 @@ WhatsApp Number: 393331234567
 
 After `Connect Session`, add another `WhatsThat` node:
 
-1. Choose the action for sessions
-2. Set `Operation` to `Wait Until Connect`
+1. Set `Section` to `Session`
+2. Set `Action` to `Wait Until Connect`
 3. Use the same `Session Name`
 4. Choose how many seconds to wait in `Timeout Seconds`
 
@@ -70,10 +69,10 @@ This second node waits for the already-started session to become fully connected
 ## How To Link A Group Or Chat Manually
 
 1. Add a `WhatsThat` node
-2. Choose the action for linked chats
-3. Start with `Operation = List Discovered Chats`
+2. Set `Section` to `Linked Chat`
+3. Start with `Action = List Discovered Chats`
 4. Pick the chat or group you want to use
-5. Change to `Operation = Link Chat`
+5. Change to `Action = Link Chat`
 6. Fill in:
    - `Session Name`
    - `Chat JID`
@@ -109,7 +108,7 @@ This is useful when you want users to self-register a group without opening n8n.
 ## How To Send A Message To A Linked Chat
 
 1. Add a `WhatsThat` node
-2. Choose the action for sending messages
+2. Set `Section` to `Message`
 3. Set `Session Name`
 4. Set `Send Message To` to `Linked Chat`
 5. Choose a linked chat from the dropdown
@@ -128,7 +127,7 @@ Message: Hello from n8n
 ## How To Send A Message To A Number
 
 1. Add a `WhatsThat` node
-2. Choose the action for sending messages
+2. Set `Section` to `Message`
 3. Set `Send Message To` to `WhatsApp Number`
 4. Enter the number with country code, digits only, without `00` and without `+`
 
@@ -141,7 +140,7 @@ WhatsApp Number: 393331234567
 ## How To Send A Message To Yourself
 
 1. Add a `WhatsThat` node
-2. Choose the action for sending messages
+2. Set `Section` to `Message`
 3. Set `Send Message To` to `Yourself`
 
 WhatsThat uses the number already connected for that session.

@@ -1,0 +1,13 @@
+{
+  "node": "@jep182/n8n-nodes-whatsthat.whatsThat",
+  "nodeVersion": "1.0",
+  "codexVersion": "1.0",
+  "categories": ["Communication"],
+  "resources": {
+    "primaryDocumentation": [
+      {
+        "url": "https://github.com/jepgambardella/n8n-nodes-whatsthat#readme"
+      }
+    ]
+  }
+}

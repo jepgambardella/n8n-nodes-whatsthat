@@ -28,7 +28,7 @@
     "package.json"
   ],
   "scripts": {
-    "build": "rm -rf dist && tsc -p tsconfig.json && mkdir -p dist/nodes/WhatsThatSession && cp nodes/WhatsThatSession/whatsthat.svg dist/nodes/WhatsThatSession/whatsthat.svg",
+    "build": "rm -rf dist && tsc -p tsconfig.json && mkdir -p dist/nodes/WhatsThat dist/nodes/WhatsThatTrigger && cp nodes/WhatsThat/whatsthat.svg dist/nodes/WhatsThat/whatsthat.svg && cp nodes/WhatsThat/WhatsThat.node.json dist/nodes/WhatsThat/WhatsThat.node.json && cp nodes/WhatsThatTrigger/WhatsThatTrigger.node.json dist/nodes/WhatsThatTrigger/WhatsThatTrigger.node.json",
     "prepublishOnly": "pnpm build"
   },
   "peerDependencies": {
@@ -57,9 +57,7 @@
       "dist/credentials/WhatsThatRuntime.credentials.js"
     ],
     "nodes": [
-      "dist/nodes/WhatsThatSession/WhatsThatSession.node.js",
-      "dist/nodes/WhatsThatTargets/WhatsThatTargets.node.js",
-      "dist/nodes/WhatsThatMessage/WhatsThatMessage.node.js",
+      "dist/nodes/WhatsThat/WhatsThat.node.js",
       "dist/nodes/WhatsThatTrigger/WhatsThatTrigger.node.js"
     ]
   }
