@@ -214,12 +214,6 @@ export class WhatsThat implements INodeType {
         default: '',
         required: true,
         description: 'Stable internal name for this session, for example main-phone or support-phone.',
-        displayOptions: {
-          hide: {
-            resource: ['session'],
-            operation: ['list'],
-          },
-        },
       },
       {
         displayName: 'Display Name',
