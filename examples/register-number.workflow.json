@@ -14,15 +14,14 @@
     },
     {
       "parameters": {
-        "resource": "session",
-        "sessionOperation": "connect",
+        "operation": "connect",
         "sessionId": "main-phone",
         "label": "Main phone",
         "phoneNumberForPairing": "393331234567"
       },
       "id": "9d89db0a-20d4-4cc0-a435-e56b6fa028b7",
       "name": "Connect Session",
-      "type": "@jep182/n8n-nodes-whatsthat.whatsThat",
+      "type": "@jep182/n8n-nodes-whatsthat.whatsThatSession",
       "typeVersion": 1,
       "position": [
         540,
@@ -31,14 +30,13 @@
     },
     {
       "parameters": {
-        "resource": "session",
-        "sessionOperation": "ensure",
+        "operation": "ensure",
         "sessionId": "main-phone",
         "timeoutSeconds": 300
       },
       "id": "ef81d309-25d0-4445-bd50-9d2c3a9e09a4",
-      "name": "Ensure Session",
-      "type": "@jep182/n8n-nodes-whatsthat.whatsThat",
+      "name": "Wait Until Connect",
+      "type": "@jep182/n8n-nodes-whatsthat.whatsThatSession",
       "typeVersion": 1,
       "position": [
         820,
@@ -63,7 +61,7 @@
       "main": [
         [
           {
-            "node": "Ensure Session",
+            "node": "Wait Until Connect",
             "type": "main",
             "index": 0
           }

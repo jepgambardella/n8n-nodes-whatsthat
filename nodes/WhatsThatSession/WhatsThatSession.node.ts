@@ -11,15 +11,46 @@ import { buildAccess } from '../../shared/access';
 import { registry } from '../../shared/runtime';
 import { normalizeSessionId, requireSessionId } from '../../shared/validation';
 
+function formatSessionOutput(value: unknown): unknown {
+  if (Array.isArray(value)) {
+    return value.map((item) => formatSessionOutput(item));
+  }
+
+  if (!value || typeof value !== 'object') {
+    return value;
+  }
+
+  const record = value as Record<string, unknown>;
+  if (!('sessionId' in record) || !('status' in record)) {
+    return value;
+  }
+
+  return {
+    qrCodeUrl: record.qrCodeUrl,
+    sessionId: record.sessionId,
+    status: record.status,
+    pairingCode: record.pairingCode,
+    qr: record.qr,
+    qrDataUrl: record.qrDataUrl,
+    phone: record.phone,
+    label: record.label,
+    phoneNumberForPairing: record.phoneNumberForPairing,
+    lastDisconnectReason: record.lastDisconnectReason,
+    createdAt: record.createdAt,
+    updatedAt: record.updatedAt,
+    lastSeenAt: record.lastSeenAt,
+  };
+}
+
 export class WhatsThatSession implements INodeType {
   description: INodeTypeDescription = {
-    displayName: 'WhatsThat Session',
+    displayName: 'WhatsThat',
     name: 'whatsThatSession',
     icon: 'file:whatsthat.svg',
     group: ['transform'],
     version: 1,
-    description: 'Create, connect, and manage embedded Baileys sessions for WhatsThat',
-    defaults: { name: 'WhatsThat Session' },
+    description: 'Connect and manage WhatsApp sessions',
+    defaults: { name: 'Connect Session' },
     inputs: ['main'],
     outputs: ['main'],
     credentials: [{ name: 'whatsThatRuntime', required: true }],
@@ -31,60 +62,44 @@ export class WhatsThatSession implements INodeType {
         default: 'connect',
         options: [
           { name: 'Connect Session', value: 'connect' },
-          { name: 'Ensure Session', value: 'ensure' },
+          { name: 'Wait Until Connect', value: 'ensure' },
           { name: 'List Sessions', value: 'list' },
-          { name: 'Get Session Status', value: 'status' },
+          { name: 'Get Session', value: 'status' },
           { name: 'Disconnect Session', value: 'disconnect' },
           { name: 'Remove Session', value: 'remove' },
         ],
       },
       {
-        displayName: 'Session ID (Internal)',
+        displayName: 'Session Name',
         name: 'sessionId',
         type: 'string',
         default: '',
         required: true,
         description:
-          'Required unique ID for this session. Use a stable internal value such as "main-phone" or "support-team".',
+          'Stable internal name for this session, for example main-phone or support-phone.',
         displayOptions: {
           hide: { operation: ['list'] },
         },
       },
       {
-        displayName: 'Label (Visible Name)',
+        displayName: 'Display Name',
         name: 'label',
         type: 'string',
         default: '',
-        description:
-          'Human-readable name shown in results. Example: "Luca personal phone" or "Support number".',
+        description: 'Friendly label for this session, for example Luca phone or Support phone.',
         displayOptions: {
-          show: { operation: ['connect', 'ensure'] },
+          show: { operation: ['connect'] },
         },
       },
       {
-        displayName: 'Phone Number For Pairing',
+        displayName: 'WhatsApp Number',
         name: 'phoneNumberForPairing',
         type: 'string',
         default: '',
         description:
-          'Optional. Full phone number with country code, digits only, without 00 or +. Example: 393331234567.',
+          'Optional. Full number with country code, digits only, without 00 or +. Open qrCodeUrl if available.',
         displayOptions: {
-          show: { operation: ['connect', 'ensure'] },
-        },
-      },
-      {
-        displayName: 'Return When',
-        name: 'waitFor',
-        type: 'options',
-        default: 'pairing_or_connected',
-        options: [
-          { name: 'Pairing Is Ready Or Connected', value: 'pairing_or_connected' },
-          { name: 'Connected', value: 'connected' },
-        ],
-        description:
-          'Return as soon as pairing data is ready, or wait until the session is fully connected.',
-        displayOptions: {
-          show: { operation: ['ensure'] },
+          show: { operation: ['connect'] },
         },
       },
       {
@@ -94,8 +109,8 @@ export class WhatsThatSession implements INodeType {
         typeOptions: {
           minValue: 1,
         },
-        default: 20,
-        description: 'Maximum time to wait before returning the latest known session status.',
+        default: 300,
+        description: 'How long to wait for the already-started session to become connected.',
         displayOptions: {
           show: { operation: ['ensure'] },
         },
@@ -132,25 +147,17 @@ export class WhatsThatSession implements INodeType {
             break;
           }
           case 'ensure': {
-            const label = (this.getNodeParameter('label', itemIndex, '') as string).trim();
-            const phoneNumberForPairing = (
-              this.getNodeParameter('phoneNumberForPairing', itemIndex, '') as string
-            ).trim();
-            const waitFor = this.getNodeParameter('waitFor', itemIndex) as
-              | 'pairing_or_connected'
-              | 'connected';
-            const timeoutSeconds = this.getNodeParameter('timeoutSeconds', itemIndex, 20) as number;
+            const timeoutSeconds = this.getNodeParameter('timeoutSeconds', itemIndex, 300) as number;
 
             json = await registry.ensureConnectedSession(
               access.paths.root,
               access,
               {
                 sessionId,
-                label: label || sessionId,
-                phoneNumberForPairing,
+                label: sessionId,
               },
               {
-                waitFor,
+                waitFor: 'connected',
                 timeoutMs: timeoutSeconds * 1000,
               },
             );
@@ -172,7 +179,7 @@ export class WhatsThatSession implements INodeType {
             throw new Error(`Unsupported operation ${operation}`);
         }
 
-        returnData.push({ json: json as IDataObject, pairedItem: itemIndex });
+        returnData.push({ json: formatSessionOutput(json) as IDataObject, pairedItem: itemIndex });
       } catch (error) {
         if (this.continueOnFail()) {
           returnData.push({ json: { error: (error as Error).message }, pairedItem: itemIndex });

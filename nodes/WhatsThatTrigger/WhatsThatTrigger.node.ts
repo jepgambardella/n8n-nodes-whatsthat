@@ -25,12 +25,12 @@ export class WhatsThatTrigger implements INodeType {
     credentials: [{ name: 'whatsThatRuntime', required: true }],
     properties: [
       {
-        displayName: 'Session ID (Internal)',
+        displayName: 'Session Name',
         name: 'sessionId',
         type: 'string',
         default: '',
         required: true,
-        description: 'The unique session ID used in the WhatsThat node resource Session.',
+        description: 'The session that owns the incoming events for this trigger.',
       },
       {
         displayName: 'Event',
@@ -49,8 +49,7 @@ export class WhatsThatTrigger implements INodeType {
           { name: 'Group Participants', value: 'group.participants' },
           { name: 'Any Event', value: '*' }
         ],
-      }
-      ,
+      },
       {
         displayName: 'Link Command',
         name: 'linkCommand',
@@ -70,7 +69,7 @@ export class WhatsThatTrigger implements INodeType {
   async trigger(this: ITriggerFunctions): Promise<ITriggerResponse> {
     const sessionId = requireSessionId(this.getNodeParameter('sessionId') as string);
     const eventName = this.getNodeParameter('eventName') as string;
-    const linkCommand = this.getNodeParameter('linkCommand', '') as string;
+    const linkCommand = (this.getNodeParameter('linkCommand') as string) || '/link-whatsthat';
     const access = await buildAccess(this);
 
     const handler = async (event: RuntimeEvent) => {

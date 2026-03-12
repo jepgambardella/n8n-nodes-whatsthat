@@ -1,7 +1,9 @@
 import type {
   IDataObject,
   IExecuteFunctions,
+  ILoadOptionsFunctions,
   INodeExecutionData,
+  INodePropertyOptions,
   INodeType,
   INodeTypeDescription,
 } from 'n8n-workflow';
@@ -9,11 +11,11 @@ import { NodeOperationError } from 'n8n-workflow';
 
 import { buildAccess } from '../../shared/access';
 import { registry } from '../../shared/runtime';
-import { requireSessionId } from '../../shared/validation';
+import { requireSessionId, requireWhatsappNumber } from '../../shared/validation';
 
 function buildPayload(context: IExecuteFunctions, itemIndex: number): IDataObject {
   const messageType = context.getNodeParameter('messageType', itemIndex) as string;
-  const targetMode = context.getNodeParameter('targetMode', itemIndex) as string;
+  const sendMessageTo = context.getNodeParameter('sendMessageTo', itemIndex) as string;
   const deliveryMode = context.getNodeParameter('deliveryMode', itemIndex, 'native') as string;
 
   const payload: IDataObject = {
@@ -21,10 +23,16 @@ function buildPayload(context: IExecuteFunctions, itemIndex: number): IDataObjec
     type: messageType,
   };
 
-  if (targetMode === 'alias') {
-    payload.channelAlias = context.getNodeParameter('alias', itemIndex) as string;
-  } else {
+  if (sendMessageTo === 'linkedChat') {
+    payload.channelAlias = context.getNodeParameter('linkedAlias', itemIndex) as string;
+  } else if (sendMessageTo === 'jid') {
     payload.jid = context.getNodeParameter('jid', itemIndex) as string;
+  } else if (sendMessageTo === 'number') {
+    payload.phoneNumber = requireWhatsappNumber(
+      context.getNodeParameter('phoneNumber', itemIndex) as string,
+    );
+  } else if (sendMessageTo === 'yourself') {
+    payload.sendToSelf = true;
   }
 
   payload.message = context.getNodeParameter('message', itemIndex, '') as string;
@@ -77,49 +85,97 @@ function buildPayload(context: IExecuteFunctions, itemIndex: number): IDataObjec
 }
 
 export class WhatsThatMessage implements INodeType {
+  methods = {
+    loadOptions: {
+      async getLinkedChats(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
+        const access = await buildAccess(this);
+        const sessionId = requireSessionId(this.getNodeParameter('sessionId') as string);
+        const linked = await registry.listLinkedTargets(access, sessionId);
+
+        return linked.map((item) => ({
+          name: `${item.alias} (${item.displayName})`,
+          value: item.alias,
+        }));
+      },
+    },
+  };
+
   description: INodeTypeDescription = {
-    displayName: 'WhatsThat Message',
+    displayName: 'WhatsThat',
     name: 'whatsThatMessage',
     icon: 'file:../WhatsThatSession/whatsthat.svg',
     group: ['transform'],
     version: 1,
-    description: 'Send messages and media through an embedded WhatsThat session',
-    defaults: { name: 'WhatsThat Message' },
+    description: 'Send WhatsApp messages and media',
+    defaults: { name: 'Send Message' },
     inputs: ['main'],
     outputs: ['main'],
     credentials: [{ name: 'whatsThatRuntime', required: true }],
     properties: [
       {
-        displayName: 'Session ID (Internal)',
+        displayName: 'Session Name',
         name: 'sessionId',
         type: 'string',
         default: '',
         required: true,
-        description: 'The unique session ID created in the WhatsThat Session node.',
+        description: 'The connected session that will send the message.',
       },
       {
-        displayName: 'Target Mode',
-        name: 'targetMode',
+        displayName: 'Send Message To',
+        name: 'sendMessageTo',
         type: 'options',
-        default: 'alias',
+        default: 'linkedChat',
         options: [
-          { name: 'Linked Alias', value: 'alias' },
+          { name: 'Linked Chat', value: 'linkedChat' },
+          { name: 'WhatsApp Number', value: 'number' },
           { name: 'Raw JID', value: 'jid' },
+          { name: 'Yourself', value: 'yourself' },
         ],
       },
       {
-        displayName: 'Alias',
-        name: 'alias',
+        displayName: 'Linked Chat',
+        name: 'linkedAlias',
+        type: 'options',
+        default: '',
+        description: 'Choose one of the chats already linked for this session.',
+        typeOptions: {
+          loadOptionsMethod: 'getLinkedChats',
+        },
+        displayOptions: {
+          show: { sendMessageTo: ['linkedChat'] },
+        },
+      },
+      {
+        displayName: 'WhatsApp Number',
+        name: 'phoneNumber',
         type: 'string',
         default: '',
-        displayOptions: { show: { targetMode: ['alias'] } },
+        description:
+          'Full number with country code, digits only, without 00 or +. Example: 393331234567.',
+        displayOptions: {
+          show: { sendMessageTo: ['number'] },
+        },
       },
       {
         displayName: 'JID',
         name: 'jid',
         type: 'string',
         default: '',
-        displayOptions: { show: { targetMode: ['jid'] } },
+        description: 'Raw WhatsApp JID, for example 393331234567@s.whatsapp.net.',
+        displayOptions: {
+          show: { sendMessageTo: ['jid'] },
+        },
+      },
+      {
+        displayName: 'Send To Yourself',
+        name: 'yourselfNotice',
+        type: 'notice',
+        default: '',
+        description:
+          'The message will be sent to the WhatsApp number already connected for this session.',
+        displayOptions: {
+          show: { sendMessageTo: ['yourself'] },
+        },
       },
       {
         displayName: 'Message Type',
@@ -155,6 +211,7 @@ export class WhatsThatMessage implements INodeType {
         type: 'string',
         typeOptions: { rows: 4 },
         default: '',
+        description: 'Main text body for the outbound message.',
         displayOptions: { hide: { messageType: ['location', 'contact', 'poll'] } },
       },
       {
@@ -162,6 +219,7 @@ export class WhatsThatMessage implements INodeType {
         name: 'mediaUrl',
         type: 'string',
         default: '',
+        description: 'Public URL or reachable file URL for the media to send.',
         displayOptions: { show: { messageType: ['image', 'video', 'audio', 'document'] } },
       },
       {
@@ -185,7 +243,13 @@ export class WhatsThatMessage implements INodeType {
         default: '',
         displayOptions: { show: { messageType: ['image', 'video', 'document'] } },
       },
-      { displayName: 'Reply To Message ID', name: 'replyToMessageId', type: 'string', default: '' },
+      {
+        displayName: 'Reply To Message ID',
+        name: 'replyToMessageId',
+        type: 'string',
+        default: '',
+        description: 'Optional. Reply or react to a specific WhatsApp message ID.',
+      },
       {
         displayName: 'Reaction Text',
         name: 'reactionText',
@@ -256,7 +320,7 @@ export class WhatsThatMessage implements INodeType {
         type: 'number',
         default: 1,
         displayOptions: { show: { messageType: ['poll'] } },
-      }
+      },
     ],
   };
 

@@ -57,7 +57,9 @@
       "dist/credentials/WhatsThatRuntime.credentials.js"
     ],
     "nodes": [
-      "dist/nodes/WhatsThat/WhatsThat.node.js",
+      "dist/nodes/WhatsThatSession/WhatsThatSession.node.js",
+      "dist/nodes/WhatsThatTargets/WhatsThatTargets.node.js",
+      "dist/nodes/WhatsThatMessage/WhatsThatMessage.node.js",
       "dist/nodes/WhatsThatTrigger/WhatsThatTrigger.node.js"
     ]
   }
