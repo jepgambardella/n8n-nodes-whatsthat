@@ -28,7 +28,7 @@
     "package.json"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.json && mkdir -p dist/nodes/WhatsThatSession && cp nodes/WhatsThatSession/whatsthat.svg dist/nodes/WhatsThatSession/whatsthat.svg",
+    "build": "rm -rf dist && tsc -p tsconfig.json && mkdir -p dist/nodes/WhatsThatSession && cp nodes/WhatsThatSession/whatsthat.svg dist/nodes/WhatsThatSession/whatsthat.svg",
     "prepublishOnly": "pnpm build"
   },
   "peerDependencies": {
